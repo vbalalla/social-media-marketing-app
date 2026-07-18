@@ -1,0 +1,14 @@
+apiVersion: v2
+name: serendia-platform
+description: Serendia Unified Social Media Dashboard — Kubernetes Helm Chart
+type: application
+version: 0.1.0
+appVersion: "0.0.1"
+keywords:
+  - serendia
+  - social-media
+  - marketing
+  - saas
+maintainers:
+  - name: Serendia Solutions LLC
+    email: engineering@serendia.io
