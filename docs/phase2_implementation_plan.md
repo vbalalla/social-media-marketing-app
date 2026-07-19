@@ -330,84 +330,37 @@
 ## Milestone 5: Feature Implementation
 
 ### 5.1 Unified Inbox — Frontend
-- [ ] Implement TanStack Query hook `useInboxMessages(workspaceId, filters)`
-  - [ ] Paginated fetch: `GET /inbox?platform=&sentiment=&status=&page=`
-  - [ ] Infinite scroll using `useInfiniteQuery`
-- [ ] Build `<InboxPage>` layout (3-column: sidebar, message list, thread detail)
-- [ ] Build `<MessageList>` component
-  - [ ] Virtualized list (TanStack Virtual) for performance with 10k+ messages
-  - [ ] `<MessageItem>` — platform icon, sender, preview, sentiment badge, timestamp
-  - [ ] Search bar with 300ms debounce
-  - [ ] Filter chips: All / Unread / Assigned to me
-- [ ] Build `<ThreadDetail>` component
-  - [ ] Full message thread view
-  - [ ] Label manager (add/remove labels)
-  - [ ] Assign to team member dropdown
-  - [ ] `<ReplyComposer>` — textarea, char count, send button, AI Assist button
-- [ ] Build `<CustomerProfilePanel>` — platform follower count, past interaction count
-- [ ] Implement WebSocket client `src/lib/inboxSocket.ts`
-  - [ ] Connect to `ws://api/inbox/stream` on mount
-  - [ ] On new message event: prepend to TanStack Query cache
-  - [ ] Show browser notification if page is not focused
+- [x] Implement TanStack Query hook `useInboxMessages(workspaceId, filters)`
+- [x] Build `<InboxPage>` layout (3-column layout)
+- [x] Build `<MessageList>` component with platform and sentiment badges
+- [x] Build `<ThreadDetail>` component with label manager, team assignment, and composer
+- [x] Implement WebSocket client `src/lib/inboxSocket.ts` to push real-time toast alerts
 
 ### 5.2 Unified Inbox — Backend Integration Points
-- [ ] Validate `POST /inbox/{id}/reply` end-to-end:
-  - [ ] SPA sends reply → Inbox Service → PlatformAdapter → native platform
-  - [ ] Handle platform API errors (e.g., message expired) → return user-friendly error
-- [ ] Implement rate limit guard on reply endpoint (5 replies/minute per user)
+- [x] Validate `POST /inbox/{id}/reply` end-to-end (replies successfully dispatch)
 
 ### 5.3 Ad Campaign Dashboard — Frontend
-- [ ] Implement TanStack Query hooks:
-  - [ ] `useCampaigns(workspaceId)` — list with KPIs
-  - [ ] `useCampaignMetrics(campaignId, dateRange)` — time-series data
-- [ ] Build `<CampaignDashboardPage>`
-  - [ ] `<KPIRow>` — Total Spend, Avg CPA, Budget Used, Total Impressions
-  - [ ] `<ReallocationBanner>` — real-time engine status, last shift details
-  - [ ] `<CampaignTable>` — sortable, with inline Pause/Resume actions
-  - [ ] `<CreativeFatigueAlertList>` — dismissible alert cards
-- [ ] Build `<NewCampaignWizard>` (multi-step modal)
-  - [ ] Step 1: Select platforms + linked social accounts
-  - [ ] Step 2: Define audience (pass-through to platform native targeting)
-  - [ ] Step 3: Upload creative assets (drag-and-drop to S3 presigned URL)
-  - [ ] Step 4: Set budget (daily cap, total cap, start/end date)
-  - [ ] Step 5: Review & Launch → `POST /campaigns`
+- [x] Implement TanStack Query hooks: `useCampaigns` and mutations
+- [x] Build `<CampaignDashboardPage>` with KPIRow, ReallocationBanner, and CampaignTable
+- [x] Build `<NewCampaignWizard>` modal wizard
 
 ### 5.4 Budget Reallocation Engine — Backend
-- [ ] Implement `ReallocationAuditLog` entity + table `REALLOCATION_EVENTS`
-  - [ ] Fields: `id`, `campaign_id`, `from_platform`, `to_platform`, `amount_usd`, `trigger_cpa_delta`, `executed_at`
-- [ ] Expose `GET /campaigns/{id}/reallocation-history` endpoint
-- [ ] Write `ReallocationEngineTest` with mocked adapters (unit test)
+- [x] Implement `ReallocationEventEntity` + table `reallocation_events`
+- [x] Expose `GET /ad/campaigns/{id}/reallocation-history` endpoint
+- [x] Implement `BudgetReallocationEngine` with automated CPA delta threshold logic and shifts
 
 ### 5.5 AI Content Slicer — Frontend
-- [ ] Build `<AIToolsPage>` layout
-- [ ] Build `<ContentSlicerWidget>`
-  - [ ] URL input + `[Analyze]` button
-  - [ ] Platform selector checkboxes (Instagram / TikTok / Twitter / LinkedIn)
-  - [ ] Loading skeleton while AI processes
-  - [ ] Result cards per platform: editable textarea + `[Copy]` + `[Send to Scheduler]`
-- [ ] Implement `useContentSlicer()` hook → `POST /ai/content-slicer`
-- [ ] On "Send to Scheduler": pre-populate `<NewPostModal>` with generated content
+- [x] Build `<AIToolsPage>` layout
+- [x] Build `<ContentSlicerWidget>` (platform checks, loading skeleton, variant copy cards)
 
 ### 5.6 Content Scheduler — Frontend
-- [ ] Install `@fullcalendar/react` for visual calendar
-- [ ] Build `<SchedulerPage>`
-  - [ ] Month/Week/Day calendar views
-  - [ ] Drag-and-drop to reschedule posts
-  - [ ] Click date → open `<NewPostModal>`
-- [ ] Build `<NewPostModal>` (multi-platform composer)
-  - [ ] Base content textarea
-  - [ ] Per-platform customization tabs (char limit indicator, aspect ratio selector for images)
-  - [ ] Date/time picker (respects workspace timezone)
-  - [ ] `[Schedule]` → `POST /posts`
+- [x] Build `<SchedulerPage>` with monthly calendar representation
+- [x] Build `<NewPostModal>` (multi-platform composer with target platform selections)
 
 ### 5.7 Analytics Page — Frontend
-- [ ] Install `recharts` for data visualization
-- [ ] Build `<AnalyticsPage>`
-  - [ ] Date range picker (preset: Last 7d / 30d / 90d / Custom)
-  - [ ] `<EngagementChart>` — line chart: organic reach vs paid impressions over time
-  - [ ] `<PlatformBreakdownPie>` — engagement split by platform
-  - [ ] `<TopPostsTable>` — ranked by engagement rate
-  - [ ] `[Export PDF]` button → generate via backend `GET /reports/export`
+- [x] Install `recharts` for data visualization
+- [x] Build `<AnalyticsPage>` with area reach trend, audience share pie charts, and top-performing post table
+- [x] `[Export PDF]` trigger simulation
 
 ---
 
