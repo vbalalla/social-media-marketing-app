@@ -1,0 +1,37 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: ai-service
+
+  webflux:
+    base-path: /
+
+jwt:
+  public-key: ${JWT_PUBLIC_KEY}
+  issuer: ${JWT_ISSUER:https://api.serendia.io}
+
+llm:
+  provider: ${LLM_PROVIDER:openai}
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: gpt-4o-mini
+    base-url: https://api.openai.com/v1
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model: gemini-1.5-flash
+    base-url: https://generativelanguage.googleapis.com/v1beta
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    io.serendia: INFO

@@ -1,0 +1,59 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: inbox-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/serendia_inbox}
+    username: ${SPRING_DATASOURCE_USERNAME:serendia}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 3
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      timeout: 2000ms
+
+jwt:
+  public-key: ${JWT_PUBLIC_KEY}
+  issuer: ${JWT_ISSUER:https://api.serendia.io}
+
+token:
+  encryption:
+    master-key: ${TOKEN_ENCRYPTION_MASTER_KEY}
+
+# Polling interval for non-webhook platforms (X, LinkedIn)
+inbox:
+  polling:
+    interval-ms: 120000   # 2 minutes
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    io.serendia: INFO
