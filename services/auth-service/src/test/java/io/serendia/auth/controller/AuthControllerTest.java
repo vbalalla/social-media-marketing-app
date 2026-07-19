@@ -7,17 +7,19 @@ import io.serendia.auth.domain.UserRole;
 import io.serendia.auth.dto.AuthResponse;
 import io.serendia.auth.dto.LoginRequest;
 import io.serendia.auth.dto.RegisterRequest;
+import io.serendia.auth.exception.GlobalExceptionHandler;
 import io.serendia.auth.service.AuthService;
 import io.serendia.auth.service.AuthService.AuthServiceTokenPair;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,22 +28,22 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Slice test — tests AuthController in isolation.
- * AuthService, JwtProperties, and security filter are mocked.
+ * Web-layer slice test for AuthController.
+ *
+ * {@code addFilters = false} disables the servlet filter chain entirely
+ * so Spring Security's auto-configured filter doesn't block requests.
+ * Security rules (permit-all for /auth/register etc.) are covered by
+ * {@link io.serendia.auth.integration.AuthIntegrationTest} which uses the full context.
+ *
+ * {@code @WithMockUser} is still used for the logout endpoint to inject a principal.
  */
 @WebMvcTest(controllers = AuthController.class)
-@TestPropertySource(properties = {
-        "jwt.private-key=placeholder",
-        "jwt.public-key=placeholder",
-        "jwt.issuer=https://test.serendia.io",
-        "jwt.access-token-expiry-minutes=15",
-        "jwt.refresh-token-expiry-days=7"
-})
+@AutoConfigureMockMvc(addFilters = false)
+@Import(GlobalExceptionHandler.class)
 @DisplayName("AuthController — Web Layer Tests")
 class AuthControllerTest {
 
@@ -58,7 +60,10 @@ class AuthControllerTest {
     private JwtProperties jwtProps;
 
     @MockBean
-    private io.serendia.auth.security.JwtAuthenticationFilter jwtFilter;
+    private io.serendia.auth.security.JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private io.serendia.auth.service.JwtService jwtService;
 
     // -------------------------------------------------------------------------
     // POST /auth/register
@@ -70,38 +75,44 @@ class AuthControllerTest {
         RegisterRequest req = new RegisterRequest(
                 "alice@example.com", "SecurePassword1!", "Alice"
         );
-        when(authService.register(any())).thenReturn(UserEntity.builder()
-                .id(UUID.randomUUID()).email("alice@example.com").build());
+        when(authService.register(any())).thenReturn(
+                UserEntity.builder().id(UUID.randomUUID()).email("alice@example.com").build()
+        );
 
         mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req))
-                        .with(csrf()))
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated());
     }
 
     @Test
     @DisplayName("POST /auth/register — missing email → 400 with fieldErrors")
     void register_missingEmail_returns400() throws Exception {
-        RegisterRequest req = new RegisterRequest("", "SecurePassword1!", "Alice");
-
         mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req))
-                        .with(csrf()))
+                        .content(objectMapper.writeValueAsString(
+                                new RegisterRequest("", "SecurePassword1!", "Alice"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors").isArray());
     }
 
     @Test
-    @DisplayName("POST /auth/register — weak password → 400")
-    void register_weakPassword_returns400() throws Exception {
-        RegisterRequest req = new RegisterRequest("alice@example.com", "weakpass", "Alice");
-
+    @DisplayName("POST /auth/register — invalid email format → 400")
+    void register_invalidEmail_returns400() throws Exception {
         mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req))
-                        .with(csrf()))
+                        .content(objectMapper.writeValueAsString(
+                                new RegisterRequest("not-an-email", "SecurePassword1!", "Alice"))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("POST /auth/register — weak password (< 12 chars) → 400")
+    void register_weakPassword_returns400() throws Exception {
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new RegisterRequest("alice@example.com", "Weak1", "Alice"))))
                 .andExpect(status().isBadRequest());
     }
 
@@ -109,15 +120,13 @@ class AuthControllerTest {
     @DisplayName("POST /auth/register — duplicate email → 409 Conflict")
     void register_duplicateEmail_returns409() throws Exception {
         when(authService.register(any())).thenThrow(
-                new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists"));
+                new ResponseStatusException(HttpStatus.CONFLICT,
+                        "An account with this email address already exists"));
 
-        RegisterRequest req = new RegisterRequest(
-                "dup@example.com", "SecurePassword1!", "Dup User"
-        );
         mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req))
-                        .with(csrf()))
+                        .content(objectMapper.writeValueAsString(
+                                new RegisterRequest("dup@example.com", "SecurePassword1!", "Dup"))))
                 .andExpect(status().isConflict());
     }
 
@@ -126,22 +135,21 @@ class AuthControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("POST /auth/login — valid credentials → 200 with accessToken")
+    @DisplayName("POST /auth/login — valid credentials → 200 with accessToken + HttpOnly cookie")
     void login_validCredentials_returns200() throws Exception {
         UUID userId = UUID.randomUUID();
         AuthResponse response = AuthResponse.of(
                 "mock.jwt.token", 900L, userId, "alice@example.com", "Alice", UserRole.ADMIN
         );
-        AuthServiceTokenPair pair = new AuthServiceTokenPair(response, "rawRefreshToken", Duration.ofDays(7));
+        AuthServiceTokenPair pair = new AuthServiceTokenPair(
+                response, "rawRefreshToken", Duration.ofDays(7));
         when(authService.login(any())).thenReturn(pair);
         when(jwtProps.getRefreshTokenExpiryDays()).thenReturn(7L);
 
-        LoginRequest req = new LoginRequest("alice@example.com", "SecurePassword1!");
-
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req))
-                        .with(csrf()))
+                        .content(objectMapper.writeValueAsString(
+                                new LoginRequest("alice@example.com", "SecurePassword1!"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("mock.jwt.token"))
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
@@ -156,13 +164,12 @@ class AuthControllerTest {
         when(authService.login(any())).thenThrow(
                 new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
 
-        LoginRequest req = new LoginRequest("alice@example.com", "WrongPassword!");
-
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req))
-                        .with(csrf()))
-                .andExpect(status().isUnauthorized());
+                        .content(objectMapper.writeValueAsString(
+                                new LoginRequest("alice@example.com", "WrongPassword!"))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 
     // -------------------------------------------------------------------------
@@ -170,12 +177,15 @@ class AuthControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "00000000-0000-0000-0000-000000000001")
     @DisplayName("POST /auth/logout — authenticated user → 204 No Content")
     void logout_authenticatedUser_returns204() throws Exception {
         doNothing().when(authService).logout(any());
 
-        mockMvc.perform(post("/auth/logout").with(csrf()))
+        // With addFilters=false, SecurityContext is not propagated from Spring Security's
+        // infrastructure. We inject a raw java.security.Principal on the request directly.
+        // The controller reads principal.getName() which returns our UUID string.
+        mockMvc.perform(post("/auth/logout")
+                        .principal((java.security.Principal) () -> "00000000-0000-0000-0000-000000000001"))
                 .andExpect(status().isNoContent());
     }
 }

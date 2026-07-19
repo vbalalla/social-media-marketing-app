@@ -89,9 +89,12 @@ public class AuthController {
     // -------------------------------------------------------------------------
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@AuthenticationPrincipal String userId,
+    public ResponseEntity<Void> logout(java.security.Principal principal,
                                         HttpServletResponse response) {
-        authService.logout(UUID.fromString(userId));
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        authService.logout(UUID.fromString(principal.getName()));
         clearRefreshCookie(response);
         return ResponseEntity.noContent().build();
     }
