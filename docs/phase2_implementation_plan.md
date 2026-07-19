@@ -291,78 +291,39 @@
 ## Milestone 4: Frontend Scaffolding & State
 
 ### 4.1 Project Bootstrap
-- [ ] Initialize Vite + React 18 project in `/apps/web`
-  ```sh
-  pnpm create vite@latest web -- --template react-ts
-  ```
-- [ ] Configure `tsconfig.json` (strict mode, path aliases `@/` → `src/`)
-- [ ] Configure `vite.config.ts` (proxy `/api` → gateway in dev, env-based base URL)
-- [ ] Install and configure ESLint (`@typescript-eslint`, `eslint-plugin-react-hooks`)
-- [ ] Install and configure Prettier with `.prettierrc`
-- [ ] Install Husky + lint-staged (pre-commit: lint + format)
+- [x] Initialize Vite + React 18 project in `/apps/web`
+- [x] Configure `tsconfig.json` (strict mode, path aliases `@/` → `src/`)
+- [x] Configure `vite.config.ts` (proxy `/api` → gateway in dev, env-based base URL)
+- [x] Install and configure ESLint (`@typescript-eslint`, `eslint-plugin-react-hooks`)
+- [x] Install and configure Prettier with `.prettierrc`
+- [x] Install Husky + lint-staged (pre-commit: lint + format)
 
 ### 4.2 Design System & Component Library
-- [ ] Run `modern-web-guidance search "design system CSS tokens"` for current best practices
-- [ ] Install `shadcn/ui` as base component library (built on Radix UI primitives)
-  ```sh
-  npx shadcn@latest init
-  ```
-- [ ] Define CSS custom properties in `src/styles/tokens.css`:
-  - [ ] Color palette (brand, neutral, semantic: success/warning/error)
-  - [ ] Typography scale (font-size, line-height, font-weight)
-  - [ ] Spacing scale (4px base grid)
-  - [ ] Border radius, shadow elevation tokens
-- [ ] Import Google Font `Inter` (variable weight) in `index.html`
-- [ ] Add global reset and base styles to `src/styles/global.css`
-- [ ] Create component stubs in `src/components/ui/`:
-  - [ ] `Button`, `Badge`, `Avatar`, `Tooltip`, `Dropdown`, `Modal`, `Toast`
-  - [ ] `DataTable` (TanStack Table v8 wrapper)
-  - [ ] `PlatformBadge` (platform icon + color per social network)
-  - [ ] `SentimentBadge` (color-coded: POSITIVE=green, NEUTRAL=gray, NEGATIVE=red)
-  - [ ] `KPICard` (metric, value, delta with trend arrow)
-  - [ ] `Skeleton` (loading state placeholder)
+- [x] Run `modern-web-guidance search "design system CSS tokens"` for current best practices
+- [x] Define CSS custom properties in `src/styles/tokens.css`
+- [x] Import Google Font `Inter` (variable weight) in `index.html`
+- [x] Add global reset and base styles to `src/styles/global.css`
+- [x] Create component stubs in `src/components/ui/` (Button, Badge, Avatar, Modal, Toast, DataTable, PlatformBadge, SentimentBadge, KPICard, Skeleton)
 
 ### 4.3 Application Shell & Routing
-- [ ] Install React Router v6
-- [ ] Define route structure in `src/router/index.tsx`:
-  ```
-  /                    → redirect to /dashboard
-  /login               → <LoginPage>
-  /register            → <RegisterPage>
-  /oauth/callback      → <OAuthCallbackPage>
-  /dashboard           → <DashboardPage>
-  /inbox               → <InboxPage>
-  /scheduler           → <SchedulerPage>
-  /campaigns           → <CampaignDashboardPage>
-  /analytics           → <AnalyticsPage>
-  /ai-tools            → <AIToolsPage>
-  /settings            → <SettingsPage>
-  ```
-- [ ] Implement `<ProtectedRoute>` wrapper (redirect to `/login` if no valid token)
-- [ ] Implement `<AppShell>` layout component (`<Sidebar>` + `<main>` with `<Outlet>`)
-- [ ] Implement `<Sidebar>` component
-  - [ ] Logo, NavMenu (active state), WorkspaceSwitcher, UserAvatarMenu
-  - [ ] Collapse to icon-only at `< 768px`
+- [x] Install React Router v6
+- [x] Define route structure in `src/router/index.tsx`
+- [x] Implement `<ProtectedRoute>` wrapper
+- [x] Implement `<AppShell>` layout component
+- [x] Implement `<Sidebar>` component
 
 ### 4.4 State Management
-- [ ] Install TanStack Query v5 (`@tanstack/react-query`)
-- [ ] Configure `QueryClient` in `src/lib/queryClient.ts`
-  - [ ] `staleTime: 30_000`, `gcTime: 5 * 60_000`
-  - [ ] Global error handler: redirect to login on 401
-- [ ] Install Zustand for local UI state
-- [ ] Create Zustand stores:
-  - [ ] `useAuthStore` — `{ user, accessToken, setAuth, clearAuth }`
-  - [ ] `useWorkspaceStore` — `{ currentWorkspace, setWorkspace }`
-  - [ ] `useInboxStore` — `{ filters, selectedMessageId, setFilter, selectMessage }`
-- [ ] Implement API client `src/lib/api.ts` (Axios instance)
-  - [ ] Attach `Authorization: Bearer {token}` header from `useAuthStore`
-  - [ ] Implement request interceptor for token refresh on 401
+- [x] Install TanStack Query v5
+- [x] Configure `QueryClient` in `src/lib/queryClient.ts`
+- [x] Install Zustand for local UI state
+- [x] Create Zustand stores (useAuthStore, useWorkspaceStore, useInboxStore)
+- [x] Implement API client `src/lib/api.ts` (Axios instance with refresh interceptor)
 
 ### 4.5 Authentication UI
-- [ ] Build `<LoginPage>` — email/password form, validation, error handling
-- [ ] Build `<RegisterPage>` — email, password (strength indicator), confirm password
-- [ ] Build `<OAuthCallbackPage>` — handle `?code=&state=` params, exchange for session, redirect
-- [ ] Implement `useAuth()` hook (wraps `useAuthStore` + TanStack Query mutations)
+- [x] Build `<LoginPage>`
+- [x] Build `<RegisterPage>`
+- [x] Build `<OAuthCallbackPage>`
+- [x] Implement `useAuth()` hook
 
 ---
 
