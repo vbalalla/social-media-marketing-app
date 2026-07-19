@@ -5,6 +5,7 @@ import DashboardPage from '../pages/DashboardPage';
 import InboxPage from '../pages/InboxPage';
 import SchedulerPage from '../pages/SchedulerPage';
 import CampaignDashboardPage from '../pages/CampaignDashboardPage';
+import AnalyticsPage from '../pages/AnalyticsPage';
 import AIToolsPage from '../pages/AIToolsPage';
 import SettingsPage from '../pages/SettingsPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
       {
         path: 'campaigns',
         element: <CampaignDashboardPage />
+      },
+      {
+        path: 'analytics',
+        element: <AnalyticsPage />
       },
       {
         path: 'ai-tools',

@@ -5,6 +5,7 @@ import {
   MessageSquare, 
   Calendar, 
   TrendingUp, 
+  BarChart2,
   Sparkles, 
   Settings, 
   LogOut 
@@ -23,6 +24,7 @@ export const Sidebar: React.FC = () => {
     { name: 'Unified Inbox', path: '/inbox', icon: <MessageSquare size={20} /> },
     { name: 'Content Calendar', path: '/scheduler', icon: <Calendar size={20} /> },
     { name: 'Ad Campaigns', path: '/campaigns', icon: <TrendingUp size={20} /> },
+    { name: 'Analytics', path: '/analytics', icon: <BarChart2 size={20} /> },
     { name: 'AI Tools', path: '/ai-tools', icon: <Sparkles size={20} /> },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
   ];

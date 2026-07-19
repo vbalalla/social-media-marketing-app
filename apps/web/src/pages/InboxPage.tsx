@@ -6,16 +6,33 @@ import { SentimentBadge } from '../components/ui/SentimentBadge';
 import { Button } from '../components/ui/Button';
 import { useToastStore } from '../stores/useToastStore';
 import { api } from '../lib/api';
-import { MessageSquare, Send } from 'lucide-react';
+import { MessageSquare, Send, Sparkles } from 'lucide-react';
 
 export const InboxPage: React.FC = () => {
   const { messages, isLoadingMessages, reply, refetchMessages } = useInboxMessages();
   const { filters, selectedMessageId, setFilter, selectMessage } = useInboxStore();
   const [replyText, setReplyText] = useState('');
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isGeneratingReply, setIsGeneratingReply] = useState(false);
   const addToast = useToastStore((state) => state.addToast);
 
   const selectedMsg = messages.find(m => m.id === selectedMessageId);
+
+  const handleAIAssist = async () => {
+    if (!selectedMsg) return;
+    setIsGeneratingReply(true);
+    try {
+      addToast('AI is generating a smart reply...', 'info');
+      const res = await api.post('/ai/suggest-reply', { text: selectedMsg.content });
+      setReplyText(res.data.reply);
+      addToast('Smart reply generated!', 'success');
+    } catch (err) {
+      addToast('Failed to generate smart reply. Fallback active.', 'warning');
+      setReplyText(`Thank you for your inquiry about "${selectedMsg.content}". We will get back to you shortly!`);
+    } finally {
+      setIsGeneratingReply(false);
+    }
+  };
 
   const handleSimulateWebhook = async (text: string) => {
     setIsSimulating(true);
@@ -222,7 +239,7 @@ export const InboxPage: React.FC = () => {
 
               {/* Reply Composer */}
               <form onSubmit={handleSendReply} style={{ padding: 'var(--spacing-lg)', borderTop: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', position: 'relative' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                   <textarea
                     rows={2}
                     value={replyText}
@@ -230,7 +247,6 @@ export const InboxPage: React.FC = () => {
                     placeholder="Type your response..."
                     required
                     style={{
-                      flex: 1,
                       backgroundColor: 'rgba(255, 255, 255, 0.03)',
                       border: '1px solid var(--border)',
                       borderRadius: 'var(--radius-sm)',
@@ -239,9 +255,21 @@ export const InboxPage: React.FC = () => {
                       resize: 'none'
                     }}
                   />
-                  <Button type="submit" style={{ alignSelf: 'flex-end', height: '44px' }}>
-                    <Send size={16} />
-                  </Button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleAIAssist}
+                      disabled={isGeneratingReply}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <Sparkles size={14} style={{ color: 'var(--primary)' }} />
+                      {isGeneratingReply ? 'Generating...' : 'AI Assist'}
+                    </Button>
+                    <Button type="submit">
+                      <Send size={16} style={{ marginRight: '6px' }} /> Send Reply
+                    </Button>
+                  </div>
                 </div>
               </form>
             </div>

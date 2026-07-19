@@ -1,7 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../lib/api';
+import { useWorkspaceStore } from '../stores/useWorkspaceStore';
+import { useToastStore } from '../stores/useToastStore';
 
 export interface Campaign {
-  id: string;
+  id: string; // config id or campaignId_platform
+  campaignId: string;
   name: string;
   platform: 'META' | 'TIKTOK';
   status: 'ACTIVE' | 'PAUSED' | 'COMPLETED';
@@ -13,50 +17,82 @@ export interface Campaign {
 }
 
 export const useCampaigns = () => {
-  const { data: campaigns = [], isLoading } = useQuery({
-    queryKey: ['campaigns'],
+  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
+  const workspaceId = currentWorkspace?.id;
+
+  const { data: campaigns = [], isLoading, refetch } = useQuery({
+    queryKey: ['campaigns', workspaceId],
     queryFn: async () => {
-      // Mock data for Milestone 3 presentation of high fidelity ad metrics
-      return [
-        {
-          id: 'c1',
-          name: 'Summer Apparel Promo - US',
-          platform: 'META',
-          status: 'ACTIVE',
-          spend: 12450.50,
-          cpa: 4.25,
-          impressions: 485000,
-          clicks: 24250,
-          dailyBudget: 500.00
-        },
-        {
-          id: 'c2',
-          name: 'Flash Sale Video - GenZ Focus',
-          platform: 'TIKTOK',
-          status: 'ACTIVE',
-          spend: 8900.00,
-          cpa: 3.10,
-          impressions: 890000,
-          clicks: 44500,
-          dailyBudget: 400.00
-        },
-        {
-          id: 'c3',
-          name: 'Brand Awareness Retargeting',
-          platform: 'META',
-          status: 'PAUSED',
-          spend: 3450.00,
-          cpa: 6.80,
-          impressions: 120000,
-          clicks: 5800,
-          dailyBudget: 150.00
-        }
-      ] as Campaign[];
-    }
+      if (!workspaceId) return [];
+      const res = await api.get(`/ad/workspaces/${workspaceId}/campaigns`);
+      const list: Campaign[] = [];
+      res.data.forEach((camp: any) => {
+        camp.platformConfigs.forEach((conf: any) => {
+          list.push({
+            id: conf.id,
+            campaignId: camp.id,
+            name: camp.name,
+            platform: conf.platform,
+            status: camp.status,
+            spend: Number(conf.spendUsd),
+            cpa: Number(conf.cpaUsd),
+            impressions: Number(conf.impressions),
+            clicks: Number(conf.clicks),
+            dailyBudget: Number(conf.dailyBudget),
+          });
+        });
+      });
+      return list;
+    },
+    enabled: !!workspaceId,
   });
 
   return {
     campaigns,
-    isLoadingCampaigns: isLoading
+    isLoadingCampaigns: isLoading,
+    refetchCampaigns: refetch,
   };
+};
+
+export const useToggleCampaignStatus = () => {
+  const queryClient = useQueryClient();
+  const addToast = useToastStore((state) => state.addToast);
+
+  return useMutation({
+    mutationFn: async ({ campaignId, currentStatus }: { campaignId: string; currentStatus: string }) => {
+      const nextStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+      const res = await api.patch(`/ad/campaigns/${campaignId}/status`, { status: nextStatus });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      addToast('Campaign status toggled successfully!', 'success');
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || 'Failed to toggle campaign status';
+      addToast(msg, 'error');
+    }
+  });
+};
+
+export const useCreateCampaign = () => {
+  const queryClient = useQueryClient();
+  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
+  const addToast = useToastStore((state) => state.addToast);
+
+  return useMutation({
+    mutationFn: async (payload: { name: string; dailyBudget: number; platforms: string[] }) => {
+      if (!currentWorkspace) throw new Error('No active workspace selected');
+      const res = await api.post(`/ad/workspaces/${currentWorkspace.id}/campaigns`, payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      addToast('Campaign created successfully!', 'success');
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || 'Failed to create campaign';
+      addToast(msg, 'error');
+    }
+  });
 };
