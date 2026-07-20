@@ -30,7 +30,10 @@ public class CampaignController {
         BigDecimal budgetPerPlatform = request.getDailyBudget()
                 .divide(BigDecimal.valueOf(request.getPlatforms().size()), 2, RoundingMode.HALF_UP);
 
+        UUID campaignId = UUID.randomUUID();
+
         CampaignEntity campaign = CampaignEntity.builder()
+                .id(campaignId)
                 .workspaceId(workspaceId)
                 .name(request.getName())
                 .dailyBudget(request.getDailyBudget())
@@ -42,7 +45,7 @@ public class CampaignController {
         List<CampaignPlatformConfigEntity> configs = new ArrayList<>();
         for (String platform : request.getPlatforms()) {
             configs.add(CampaignPlatformConfigEntity.builder()
-                    .campaignId(campaign.getId())
+                    .campaignId(campaignId)
                     .platform(platform.toUpperCase())
                     .platformCampaignId(platform.toLowerCase() + "_" + UUID.randomUUID().toString().substring(0, 8))
                     .dailyBudget(budgetPerPlatform)
