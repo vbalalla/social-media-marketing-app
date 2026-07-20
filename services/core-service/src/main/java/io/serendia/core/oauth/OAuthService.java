@@ -124,6 +124,9 @@ public class OAuthService {
 
     private SocialPlatform parsePlatform(String platform) {
         try {
+            if ("META".equalsIgnoreCase(platform)) {
+                return SocialPlatform.FACEBOOK;
+            }
             return SocialPlatform.valueOf(platform.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown platform: " + platform);
