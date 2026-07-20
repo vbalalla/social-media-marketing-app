@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useInboxMessages } from '../hooks/useInboxMessages';
 import { useInboxStore } from '../stores/useInboxStore';
+import { useWorkspaceStore } from '../stores/useWorkspaceStore';
 import { PlatformBadge } from '../components/ui/PlatformBadge';
 import { SentimentBadge } from '../components/ui/SentimentBadge';
 import { Button } from '../components/ui/Button';
@@ -11,6 +12,8 @@ import { MessageSquare, Send, Sparkles } from 'lucide-react';
 export const InboxPage: React.FC = () => {
   const { messages, isLoadingMessages, reply, refetchMessages } = useInboxMessages();
   const { filters, selectedMessageId, setFilter, selectMessage } = useInboxStore();
+  const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace);
+  const workspaceId = currentWorkspace?.id;
   const [replyText, setReplyText] = useState('');
   const [isSimulating, setIsSimulating] = useState(false);
   const [isGeneratingReply, setIsGeneratingReply] = useState(false);
@@ -40,12 +43,12 @@ export const InboxPage: React.FC = () => {
       object: 'page',
       entry: [
         {
-          id: '123456789', // Page ID (hashes to a stable workspace UUID)
+          id: workspaceId || '123456789', // Page ID (hashes to a stable workspace UUID)
           time: Date.now(),
           messaging: [
             {
               sender: { id: 'sender_' + Math.floor(Math.random() * 1000) },
-              recipient: { id: '123456789' },
+              recipient: { id: workspaceId || '123456789' },
               timestamp: Date.now(),
               message: {
                 mid: 'mid.' + Math.random().toString(36).substring(2, 15),

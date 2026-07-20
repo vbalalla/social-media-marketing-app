@@ -67,7 +67,12 @@ public class MessageIngestionService {
         }
 
         // Generate a stable workspace ID from the social platform page ID
-        UUID workspaceId = UUID.nameUUIDFromBytes(pageId.getBytes());
+        UUID workspaceId;
+        try {
+            workspaceId = UUID.fromString(pageId);
+        } catch (IllegalArgumentException e) {
+            workspaceId = UUID.nameUUIDFromBytes(pageId.getBytes());
+        }
 
         InboxMessageEntity entity = InboxMessageEntity.builder()
                 .workspaceId(workspaceId)
