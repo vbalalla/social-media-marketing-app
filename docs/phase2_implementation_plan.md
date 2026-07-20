@@ -9,68 +9,69 @@
 ## Milestone 1: Environment Setup & Infrastructure
 
 ### 1.1 Repository & Monorepo Structure
-- [ ] Initialize GitHub Organization `serendia-solutions`
-- [ ] Create monorepo root `social-dashboard` with `pnpm` workspaces
-  - [ ] `/apps/web` — React SPA
-  - [ ] `/services/auth-service` — Spring Boot
-  - [ ] `/services/core-service` — Spring Boot
-  - [ ] `/services/ai-service` — Spring Boot + Python sidecar
-  - [ ] `/services/ad-service` — Spring Boot
-  - [ ] `/services/inbox-service` — Spring Boot
-  - [ ] `/infra` — Terraform / Helm charts
-  - [ ] `/shared/api-contracts` — OpenAPI specs
-- [ ] Add `.editorconfig`, `.gitignore`, root `README.md`
-- [ ] Configure branch protection: require PR + 1 reviewer on `main`
+- [ ] Initialize GitHub Organization `serendia-solutions` *(repo is under personal account `vbalalla`)*
+- [x] Create monorepo root with `pnpm` workspaces
+  - [x] `/apps/web` — React SPA (Vite + React 18)
+  - [x] `/services/auth-service` — Spring Boot 3 / Java 21
+  - [x] `/services/core-service` — Spring Boot 3 / Java 21
+  - [x] `/services/ai-service` — Spring Boot 3 / Java 21
+  - [x] `/services/ad-service` — Spring Boot 3 / Java 21
+  - [x] `/services/inbox-service` — Spring Boot 3 / Java 21
+  - [x] `/infra` — Helm chart + DB init + Nginx config
+  - [x] `/shared/api-contracts` — directory scaffolded
+- [x] `.gitignore`, `.prettierrc`, root `README.md` present
+- [ ] `.editorconfig` — **not created**
+- [ ] Configure branch protection: require PR + 1 reviewer on `main` — **not configured**
 
 ### 1.2 CI/CD Pipelines (GitHub Actions)
-- [ ] Create workflow `ci-frontend.yml`
-  - [ ] Lint (ESLint + Prettier check)
-  - [ ] Unit tests (`vitest`)
-  - [ ] Build (`vite build`) — fail on TS errors
-- [ ] Create workflow `ci-backend.yml`
-  - [ ] Run per-service matrix: `mvn verify` (unit + integration tests)
-  - [ ] Static analysis: `SpotBugs`, `Checkstyle`
-- [ ] Create workflow `docker-build.yml`
-  - [ ] Build and push Docker images to ECR / Artifact Registry on merge to `main`
-  - [ ] Tag images with git SHA
-- [ ] Create workflow `deploy-staging.yml`
+- [x] Create workflow `ci-frontend.yml`
+  - [x] Lint (ESLint + Prettier check)
+  - [x] Unit tests (Vitest with coverage upload)
+  - [x] Build (`vite build`) — fails on TS errors
+- [x] Create workflow `ci-backend.yml`
+  - [x] Per-service matrix: `mvn verify` (unit + integration tests) across all 5 services
+  - [x] Static analysis: SpotBugs (`spotbugs:check` on `auth-service` + `core-service`)
+  - [ ] Checkstyle — **not included in workflow**
+- [x] Create workflow `docker-build.yml`
+  - [x] Build and push Docker images to **GHCR** (GitHub Container Registry) on merge to `main`
+  - [x] Tag images with git SHA + `latest` + branch name
+- [ ] Create workflow `deploy-staging.yml` — **not created**
   - [ ] Trigger on tag `v*-rc*`
   - [ ] `helm upgrade --install` to staging K8s namespace
-- [ ] Set GitHub secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `DOCKER_REGISTRY_URL`
+- [ ] Set GitHub secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — **not set** *(using GHCR `GITHUB_TOKEN` instead of ECR)*
 
 ### 1.3 Container & Kubernetes Infrastructure
-- [ ] Write multi-stage `Dockerfile` for each Spring Boot service (JDK 21 slim base)
-- [ ] Write `Dockerfile` for React SPA (Nginx Alpine base)
-- [ ] Create Helm chart `serendia-platform`
-  - [ ] `values.yaml` with per-environment overrides (`staging`, `production`)
-  - [ ] Deployments for all 6 containers (5 services + API Gateway)
-  - [ ] `HorizontalPodAutoscaler` configs for `ai-service` and `inbox-service`
-  - [ ] `ConfigMap` for non-secret environment variables
-  - [ ] `Secret` references (mounted from AWS Secrets Manager via External Secrets Operator)
-- [ ] Provision K8s staging cluster (EKS / GKE)
-- [ ] Install External Secrets Operator on cluster
-- [ ] Configure Nginx Ingress Controller with TLS (cert-manager + Let's Encrypt)
-- [ ] Set up API Gateway (Kong or Spring Cloud Gateway) deployment
-  - [ ] Define routes to all internal services
-  - [ ] Enable rate limiting plugin (100 req/min per user)
-  - [ ] Enable request logging plugin
+- [x] Multi-stage `Dockerfile` for all 5 Spring Boot services (JDK 21 slim base)
+- [x] `Dockerfile` for React SPA (Nginx Alpine base)
+- [x] Helm chart `serendia-platform` scaffolded (`Chart.yaml` + `values.yaml`)
+  - [x] `values.yaml` with per-service resource limits and per-environment override support
+  - [ ] Helm `templates/` — **empty, no Kubernetes manifests written yet**
+    - [ ] Deployment templates for all 6 containers
+    - [ ] `HorizontalPodAutoscaler` for `ai-service` and `inbox-service`
+    - [ ] `ConfigMap` for non-secret environment variables
+    - [ ] `Secret` references (AWS Secrets Manager via External Secrets Operator)
+- [x] Local API Gateway: Nginx reverse proxy configured (`infra/nginx/nginx.conf`) for Docker Compose
+- [ ] Provision K8s staging cluster (EKS / GKE) — **not provisioned** *(local Docker Compose only)*
+- [ ] Install External Secrets Operator on cluster — **not set up**
+- [ ] Configure Nginx Ingress Controller with TLS (cert-manager + Let's Encrypt) — **not set up**
+- [ ] Set up cloud API Gateway (Kong / Spring Cloud Gateway) with rate limiting + request logging
 
 ### 1.4 Database Initialization
-- [ ] Provision managed PostgreSQL instance (RDS `db.t4g.medium`, Multi-AZ for production)
-- [ ] Create databases: `serendia_auth`, `serendia_core`, `serendia_ad`, `serendia_inbox`
-- [ ] Provision Redis Cluster (ElastiCache, 2 shards + 1 replica each)
-- [ ] Provision S3 bucket `serendia-media-assets` with versioning enabled
+- [ ] Provision managed PostgreSQL instance (RDS `db.t4g.medium`, Multi-AZ) — **not provisioned** *(local Docker Compose Postgres)*
+- [x] Create databases: `serendia_auth`, `serendia_core`, `serendia_ad`, `serendia_inbox` — `01_create_databases.sql` with grants
+- [ ] Provision Redis Cluster (ElastiCache, 2 shards + 1 replica) — **not provisioned** *(local Docker Compose Redis)*
+- [ ] Provision S3 bucket `serendia-media-assets` with versioning — **not provisioned**
   - [ ] Configure CORS policy for SPA origin
   - [ ] Configure lifecycle rules (move to Glacier after 90 days)
-- [ ] Create IAM role per service (least-privilege) for DB and S3 access
-- [ ] Set up Flyway migration baseline `V0__baseline.sql` for each service DB schema
+- [ ] Create IAM role per service (least-privilege) for DB and S3 access — **not created**
+- [ ] Set up Flyway migration baseline `V0__baseline.sql` — **not needed locally; each service manages its own migrations from V1**
 
 ### 1.5 Observability Stack
-- [ ] Deploy Prometheus + Grafana to cluster
-- [ ] Configure Spring Boot Actuator `/metrics` endpoint on all services
-- [ ] Create Grafana dashboard: service latency, error rate, DB connection pool
-- [ ] Configure PagerDuty / Slack alert for error rate > 1% over 5 min
-- [ ] Set up distributed tracing (OpenTelemetry agent on all JVMs → Jaeger / Tempo)
+- [ ] Deploy Prometheus + Grafana to cluster — **not deployed** *(not in `docker-compose.yml`)*
+- [x] Spring Boot Actuator `/metrics` + `/prometheus` endpoint enabled on all 5 services
+- [ ] Create Grafana dashboards (service latency, error rate, DB connection pool) — **not created**
+- [ ] Configure PagerDuty / Slack alerting for error rate > 1% over 5 min — **not configured**
+- [ ] Set up distributed tracing (OpenTelemetry agent on all JVMs → Jaeger / Tempo) — **not configured**
 
 ---
 
