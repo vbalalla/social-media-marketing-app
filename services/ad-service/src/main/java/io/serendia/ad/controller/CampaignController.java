@@ -30,10 +30,7 @@ public class CampaignController {
         BigDecimal budgetPerPlatform = request.getDailyBudget()
                 .divide(BigDecimal.valueOf(request.getPlatforms().size()), 2, RoundingMode.HALF_UP);
 
-        UUID campaignId = UUID.randomUUID();
-
         CampaignEntity campaign = CampaignEntity.builder()
-                .id(campaignId)
                 .workspaceId(workspaceId)
                 .name(request.getName())
                 .dailyBudget(request.getDailyBudget())
@@ -42,10 +39,12 @@ public class CampaignController {
                 .updatedAt(Instant.now())
                 .build();
 
+        CampaignEntity savedCampaign = campaignRepository.saveAndFlush(campaign);
+
         List<CampaignPlatformConfigEntity> configs = new ArrayList<>();
         for (String platform : request.getPlatforms()) {
             configs.add(CampaignPlatformConfigEntity.builder()
-                    .campaignId(campaignId)
+                    .campaignId(savedCampaign.getId())
                     .platform(platform.toUpperCase())
                     .platformCampaignId(platform.toLowerCase() + "_" + UUID.randomUUID().toString().substring(0, 8))
                     .dailyBudget(budgetPerPlatform)
@@ -58,8 +57,8 @@ public class CampaignController {
                     .build());
         }
 
-        campaign.setPlatformConfigs(configs);
-        CampaignEntity saved = campaignRepository.save(campaign);
+        savedCampaign.setPlatformConfigs(configs);
+        CampaignEntity saved = campaignRepository.saveAndFlush(savedCampaign);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
