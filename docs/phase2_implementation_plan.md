@@ -446,22 +446,35 @@
 | 3 | Core Backend Microservices | Backend | M2 |
 | 4 | Frontend Scaffolding & State | Frontend | M1 |
 | 5 | Feature Implementation | Full Stack | M3 + M4 |
-| 6 | Testing & QA | QA + Full Stack | M5 |
-| 7 | OAuth 2.0 Social Platform Setup Wizard | Full Stack | M2 + M4 |
+| 6 | OAuth 2.0 Social Platform Setup Wizard | Full Stack | M2 + M4 |
 
 ---
 
-## Milestone 7: OAuth 2.0 Social Platform Setup Wizard
+## Milestone 6: OAuth 2.0 Social Platform Setup Wizard
 
-Adds a first-login onboarding setup screen where users connect their social media accounts via real OAuth 2.0 flows before accessing the dashboard. Extends backend OAuth clients to support LinkedIn and X/Twitter in addition to existing Meta and TikTok support.
+Adds a first-login onboarding setup screen where users connect their social media accounts via real OAuth 2.0 flows before accessing the dashboard. Extends the existing Meta + TikTok OAuth clients to also support LinkedIn and X/Twitter.
 
-### 7.1 Backend — `auth-service`
+### 6.1 Backend — `auth-service`
 - [ ] Add Flyway migration `V4__add_onboarding_flag.sql` — `ALTER TABLE users ADD COLUMN onboarding_complete BOOLEAN NOT NULL DEFAULT FALSE;`
 - [ ] Update `UserEntity` with `onboardingComplete` field
 - [ ] Include `onboardingComplete` in `AuthResponse` DTO returned on login
 - [ ] Implement `PATCH /auth/users/{userId}/onboarding-complete` internal endpoint (protected by `X-Internal-Secret` header, not exposed via Nginx)
 
-### 7.2 Backend — `core-service` (New OAuth Clients)
+> **Already completed in `auth-service`:**
+> - [x] `auth-service` bootstrapped with Spring Security, JPA, Flyway
+> - [x] Flyway `V1__create_users.sql` — `users` table with email unique index
+> - [x] `UserEntity` JPA entity (`id`, `email`, `passwordHash`, `fullName`, `role`, `isActive`, `createdAt`, `lastLoginAt`)
+> - [x] `UserRepository` (Spring Data JPA)
+> - [x] `PasswordHashingService` (BCrypt)
+> - [x] `POST /auth/register` — email uniqueness check, password hash, `201 Created`
+> - [x] `POST /auth/login` — credential validation, JWT (RS256) + HttpOnly refresh cookie
+> - [x] `POST /auth/refresh` — Redis-backed token rotation
+> - [x] `POST /auth/logout` — Redis token revocation + cookie clear
+> - [x] `UserRole` enum: `OWNER`, `ADMIN`, `MEMBER`, `VIEWER`
+> - [x] `JwtService` — RS256 `issueAccessToken()` / `verifyAccessToken()` (PKCS8 PEM key loading)
+> - [x] `RefreshTokenService` — Redis-backed token storage and rotation
+
+### 6.2 Backend — `core-service` (New OAuth Clients)
 - [ ] Implement `LinkedInOAuthClient.java`
   - [ ] PKCE authorization URL → `https://www.linkedin.com/oauth/v2/authorization`
   - [ ] Scopes: `r_liteprofile`, `r_emailaddress`, `w_member_social`, `rw_organization_admin`
@@ -475,7 +488,22 @@ Adds a first-login onboarding setup screen where users connect their social medi
 - [ ] After successful callback, call `auth-service` internal REST endpoint to set `onboarding_complete = true`
 - [ ] Implement `GET /core/workspaces/{workspaceId}/onboarding-status` returning `{ platformsConnected, count }`
 
-### 7.3 Frontend — React SPA
+> **Already completed in `core-service`:**
+> - [x] Flyway `V1__create_workspaces.sql`, `V2__create_social_accounts.sql`, `V3__create_posts.sql`
+> - [x] `SocialPlatform` enum: `FACEBOOK`, `INSTAGRAM`, `TIKTOK`, `LINKEDIN`, `X`
+> - [x] `PkceUtil` — `generateCodeVerifier()` / `generateCodeChallenge()` (S256)
+> - [x] `OAuthStateService` — Redis-backed CSRF state creation & validation
+> - [x] `MetaOAuthClient` — PKCE authorization URL builder + token exchange + `/me` profile fetch
+> - [x] `TikTokOAuthClient` — PKCE authorization URL builder + token exchange
+> - [x] `OAuthService` — `initOAuth()` and `handleCallback()` for Meta and TikTok with encrypted token storage
+> - [x] `TokenEncryptionService` — AES-256-GCM encrypt/decrypt for stored OAuth tokens
+> - [x] `OAuthController` — `GET /core/oauth/init` and `GET /core/oauth/callback` endpoints
+> - [x] `SocialAccountEntity` + `SocialAccountRepository`
+> - [x] `WorkspaceController` — workspace CRUD + member management
+> - [x] `SocialAccountController` — list / delete connected accounts
+> - [x] `MetaWebhookController` — `POST /core/webhooks/meta` for incoming DM events
+
+### 6.3 Frontend — React SPA
 - [ ] Create `src/stores/useOnboardingStore.ts` (Zustand, persisted to `localStorage`)
 - [ ] Update `useAuthStore.setAuth()` to also seed `useOnboardingStore` from login response
 - [ ] Create `src/pages/SocialSetupPage.tsx` (route: `/setup`)
@@ -489,12 +517,25 @@ Adds a first-login onboarding setup screen where users connect their social medi
 - [ ] Add `/setup` route to `router/index.tsx`
 - [ ] Add LinkedIn and X connection cards to `SettingsPage.tsx`
 
-### 7.4 Environment Variables
+> **Already completed in React SPA:**
+> - [x] `useAuthStore` (Zustand) — `user`, `accessToken`, `setAuth()`, `clearAuth()` with localStorage persistence
+> - [x] `useWorkspaceStore` (Zustand) — `currentWorkspace`, `setWorkspace()` with localStorage persistence
+> - [x] `ProtectedRoute.tsx` — JWT presence guard, redirects to `/login`
+> - [x] `OAuthCallbackPage.tsx` — exchanges `code`+`state` against `/core/oauth/callback`, redirects to `/settings`
+> - [x] `SettingsPage.tsx` — Meta and TikTok connect buttons calling `/core/oauth/init`, connected accounts list
+> - [x] `/oauth/callback` route registered in `router/index.tsx`
+
+### 6.4 Environment Variables
 - [ ] Add `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` to `.env.example`
 - [ ] Add `X_CLIENT_ID`, `X_CLIENT_SECRET` to `.env.example`
 - [ ] Add `INTERNAL_SERVICE_SECRET` to `.env.example` (used by core-service → auth-service internal calls)
 
-### 7.5 Documentation
+> **Already in `.env.example`:**
+> - [x] `META_APP_ID`, `META_APP_SECRET`, `META_REDIRECT_URI`
+> - [x] `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, `TIKTOK_REDIRECT_URI`
+> - [x] `JWT_PRIVATE_KEY`, `JWT_PUBLIC_KEY`, `JWT_ISSUER`
+
+### 6.5 Documentation
 - [ ] Create `docs/oauth_setup_guide.md` covering LinkedIn and X developer app registration, env vars, and local testing with ngrok
 - [ ] Update `README.md` to reference the new setup guide
 
