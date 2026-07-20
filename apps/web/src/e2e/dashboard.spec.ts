@@ -101,9 +101,14 @@ test.describe('Serendia Social Media Marketing App E2E Flow', () => {
     await page.click('a:has-text("Unified Inbox")');
     await page.waitForURL(/\/inbox/);
 
+    // Simulate a message ingestion
+    console.log('Simulating positive DM webhook...');
+    await page.click('button:has-text("Simulate positive DM")');
+    await page.waitForTimeout(2000); // Wait for Redis pub/sub ingestion and UI refresh
+
     // Click the first conversation thread item
     console.log('Selecting first conversation thread...');
-    await page.click('div[style*="cursor: pointer"]');
+    await page.click('text=Meta User');
 
     // Click "AI Assist" button to draft reply
     console.log('Clicking AI Assist reply generator...');
