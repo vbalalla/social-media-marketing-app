@@ -152,6 +152,28 @@ export const SettingsPage: React.FC = () => {
                 Connect TikTok
               </Button>
             </div>
+
+            {/* LinkedIn */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+              <div>
+                <strong>LinkedIn Integration</strong>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Connect LinkedIn Professional profiles & Pages</div>
+              </div>
+              <Button size="sm" onClick={() => handleOAuthConnect('LINKEDIN')}>
+                Connect LinkedIn
+              </Button>
+            </div>
+
+            {/* X / Twitter */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+              <div>
+                <strong>X (Twitter) Feed</strong>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Connect X Social Feed Integration</div>
+              </div>
+              <Button size="sm" onClick={() => handleOAuthConnect('X')}>
+                Connect X
+              </Button>
+            </div>
           </div>
 
           {/* List of active accounts */}

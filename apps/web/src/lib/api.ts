@@ -49,9 +49,10 @@ api.interceptors.response.use(
 
       try {
         const res = await axios.post('/api/auth/refresh');
-        const { accessToken, user } = res.data;
+        const { accessToken, userId, email, fullName, role, onboardingComplete } = res.data;
+        const user = { id: userId, email, fullName, role };
 
-        useAuthStore.getState().setAuth(user, accessToken);
+        useAuthStore.getState().setAuth(user, accessToken, onboardingComplete);
         processQueue(null, accessToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;

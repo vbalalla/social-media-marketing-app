@@ -134,6 +134,7 @@ See [`docs/phase2_implementation_plan.md`](docs/phase2_implementation_plan.md) f
 | [`docs/Software_Requirements_Specification.md`](docs/Software_Requirements_Specification.md) | Full SRS |
 | [`docs/phase1_architecture_design.md`](docs/phase1_architecture_design.md) | Architecture & UI design |
 | [`docs/phase2_implementation_plan.md`](docs/phase2_implementation_plan.md) | Implementation checklist |
+| [`docs/oauth_setup_guide.md`](docs/oauth_setup_guide.md) | Third-party OAuth 2.0 application setup guide |
 
 ---
 

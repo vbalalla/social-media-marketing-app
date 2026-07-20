@@ -15,10 +15,11 @@ public record AuthResponse(
         UUID userId,
         String email,
         String fullName,
-        UserRole role
+        UserRole role,
+        boolean onboardingComplete
 ) {
     public static AuthResponse of(String accessToken, long expiresInSeconds,
-                                   UUID userId, String email, String fullName, UserRole role) {
-        return new AuthResponse(accessToken, "Bearer", expiresInSeconds, userId, email, fullName, role);
+                                   UUID userId, String email, String fullName, UserRole role, boolean onboardingComplete) {
+        return new AuthResponse(accessToken, "Bearer", expiresInSeconds, userId, email, fullName, role, onboardingComplete);
     }
 }

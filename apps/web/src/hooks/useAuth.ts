@@ -20,7 +20,7 @@ export const useAuth = () => {
         fullName: data.fullName,
         role: data.role,
       };
-      setAuth(user, data.accessToken);
+      setAuth(user, data.accessToken, data.onboardingComplete);
       addToast('Welcome back, ' + user.fullName + '!', 'success');
     },
     onError: (err: any) => {

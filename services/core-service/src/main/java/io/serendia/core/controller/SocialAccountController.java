@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -36,5 +37,22 @@ public class SocialAccountController {
         UUID userId = UUID.fromString(principal.getName());
         socialAccountService.disconnectAccount(id, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/workspaces/{workspaceId}/onboarding-status")
+    public ResponseEntity<Map<String, Object>> getOnboardingStatus(
+            @PathVariable UUID workspaceId,
+            Principal principal
+    ) {
+        UUID userId = UUID.fromString(principal.getName());
+        List<SocialAccountEntity> accounts = socialAccountService.listAccounts(workspaceId, userId);
+        List<String> platforms = accounts.stream()
+                .map(acc -> acc.getPlatform().name())
+                .distinct()
+                .toList();
+        return ResponseEntity.ok(Map.of(
+                "platformsConnected", platforms,
+                "count", platforms.size()
+        ));
     }
 }

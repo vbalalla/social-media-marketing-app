@@ -139,7 +139,7 @@ class AuthControllerTest {
     void login_validCredentials_returns200() throws Exception {
         UUID userId = UUID.randomUUID();
         AuthResponse response = AuthResponse.of(
-                "mock.jwt.token", 900L, userId, "alice@example.com", "Alice", UserRole.ADMIN
+                "mock.jwt.token", 900L, userId, "alice@example.com", "Alice", UserRole.ADMIN, true
         );
         AuthServiceTokenPair pair = new AuthServiceTokenPair(
                 response, "rawRefreshToken", Duration.ofDays(7));

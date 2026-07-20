@@ -72,3 +72,21 @@ logging:
   level:
     io.serendia: INFO
     org.springframework.security: WARN
+
+auth-service:
+  url: ${AUTH_SERVICE_URL:http://localhost:8081}
+
+internal:
+  service-secret: ${INTERNAL_SERVICE_SECRET:super-secret-service-key}
+
+# LinkedIn OAuth credentials
+linkedin:
+  client-id: ${LINKEDIN_CLIENT_ID:placeholder-linkedin-client-id}
+  client-secret: ${LINKEDIN_CLIENT_SECRET:placeholder-linkedin-client-secret}
+  redirect-uri: ${LINKEDIN_REDIRECT_URI:http://localhost:8080/oauth/callback}
+
+# X OAuth credentials
+x:
+  client-id: ${X_CLIENT_ID:placeholder-x-client-id}
+  client-secret: ${X_CLIENT_SECRET:placeholder-x-client-secret}
+  redirect-uri: ${X_REDIRECT_URI:http://localhost:8080/oauth/callback}

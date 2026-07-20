@@ -40,7 +40,15 @@ test.describe('Serendia Social Media Marketing App E2E Flow', () => {
     await page.fill('input[placeholder="••••••••••••"]', 'SuperPassword123!');
     await page.click('button:has-text("Log In")');
 
-    // 6. Verify redirected to dashboard
+    // 6. Verify redirected to setup onboarding wizard
+    console.log('Waiting for setup wizard load...');
+    await page.waitForURL(/\/setup/);
+    await expect(page).toHaveURL(/\/setup/);
+    
+    // Click "Skip for now" to complete onboarding
+    await page.click('button:has-text("Skip for now")');
+
+    // Verify redirected to dashboard
     console.log('Waiting for dashboard load...');
     await page.waitForURL(/\/dashboard/);
     await expect(page).toHaveURL(/\/dashboard/);

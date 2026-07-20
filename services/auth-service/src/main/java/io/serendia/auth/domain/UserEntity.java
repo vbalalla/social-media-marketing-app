@@ -42,6 +42,10 @@ public class UserEntity {
     @Builder.Default
     private boolean isActive = true;
 
+    @Column(name = "onboarding_complete", nullable = false)
+    @Builder.Default
+    private boolean onboardingComplete = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private Instant createdAt = Instant.now();

@@ -9,6 +9,7 @@ import AnalyticsPage from '../pages/AnalyticsPage';
 import AIToolsPage from '../pages/AIToolsPage';
 import SettingsPage from '../pages/SettingsPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
+import SocialSetupPage from '../pages/SocialSetupPage';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { AppShell } from '../components/AppShell';
 
@@ -20,6 +21,10 @@ export const router = createBrowserRouter([
   {
     path: '/register',
     element: <RegisterPage />
+  },
+  {
+    path: '/setup',
+    element: <SocialSetupPage />
   },
   {
     path: '/oauth/callback',

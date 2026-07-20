@@ -104,6 +104,15 @@ public class AuthService {
         log.info("User {} logged out, refresh token revoked", userId);
     }
 
+    @Transactional
+    public void completeOnboarding(UUID userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setOnboardingComplete(true);
+        userRepository.save(user);
+        log.info("User {} marked onboarding as complete", userId);
+    }
+
     // ---------------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------------
@@ -119,7 +128,8 @@ public class AuthService {
                 user.getId(),
                 user.getEmail(),
                 user.getFullName(),
-                user.getRole()
+                user.getRole(),
+                user.isOnboardingComplete()
         );
 
         return new AuthServiceTokenPair(response, refreshToken, refreshTtl);

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useToastStore } from '../stores/useToastStore';
+import { useOnboardingStore } from '../stores/useOnboardingStore';
 import { Loader } from 'lucide-react';
 
 export const OAuthCallbackPage: React.FC = () => {
@@ -22,20 +23,27 @@ export const OAuthCallbackPage: React.FC = () => {
 
     const exchangeCode = async () => {
       try {
+        const wasComplete = useOnboardingStore.getState().onboardingComplete;
+
         await api.get('/core/oauth/callback', {
           params: { code, state }
         });
+
+        // Set onboardingComplete to true since they just connected a social account
+        useOnboardingStore.getState().setOnboardingComplete(true);
+
         setStatus('Successfully connected social account!');
         addToast('Social account connected!', 'success');
         setTimeout(() => {
-          navigate('/settings');
+          navigate(wasComplete ? '/settings' : '/setup');
         }, 1500);
       } catch (e: any) {
         const msg = e.response?.data?.message || 'Failed to authorize connected social account';
         setStatus('Authorization failed: ' + msg);
         addToast(msg, 'error');
         setTimeout(() => {
-          navigate('/settings');
+          const wasComplete = useOnboardingStore.getState().onboardingComplete;
+          navigate(wasComplete ? '/settings' : '/setup');
         }, 3000);
       }
     };

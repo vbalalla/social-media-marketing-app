@@ -23,7 +23,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
-@RequiredArgsConstructor
 @Slf4j
 public class AuthController {
 
@@ -31,6 +30,17 @@ public class AuthController {
 
     private final AuthService    authService;
     private final JwtProperties  jwtProps;
+    private final String         internalServiceSecret;
+
+    public AuthController(
+            AuthService authService,
+            JwtProperties jwtProps,
+            @org.springframework.beans.factory.annotation.Value("${internal.service-secret}") String internalServiceSecret
+    ) {
+        this.authService = authService;
+        this.jwtProps = jwtProps;
+        this.internalServiceSecret = internalServiceSecret;
+    }
 
     // -------------------------------------------------------------------------
     // POST /auth/register
@@ -127,5 +137,18 @@ public class AuthController {
                 .filter(c -> REFRESH_COOKIE.equals(c.getName()))
                 .map(Cookie::getValue)
                 .findFirst();
+    }
+
+    @PatchMapping("/users/{userId}/onboarding-complete")
+    public ResponseEntity<Void> completeOnboarding(
+            @PathVariable UUID userId,
+            @RequestHeader(value = "X-Internal-Secret", required = false) String internalSecret) {
+        if (internalSecret == null || !internalSecret.equals(internalServiceSecret)) {
+            log.warn("Unauthorized attempt to complete onboarding for user {} with secret {}", userId, internalSecret);
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "Invalid service secret");
+        }
+        authService.completeOnboarding(userId);
+        return ResponseEntity.ok().build();
     }
 }

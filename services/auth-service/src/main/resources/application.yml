@@ -61,3 +61,6 @@ logging:
   level:
     io.serendia: INFO
     org.springframework.security: WARN
+
+internal:
+  service-secret: ${INTERNAL_SERVICE_SECRET:super-secret-service-key}

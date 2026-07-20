@@ -12,6 +12,6 @@ public enum SocialPlatform {
     }
 
     public boolean supportsRefreshToken() {
-        return this == TIKTOK || this == LINKEDIN;
+        return this == TIKTOK || this == LINKEDIN || this == X;
     }
 }
