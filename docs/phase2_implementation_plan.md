@@ -447,6 +447,56 @@
 | 4 | Frontend Scaffolding & State | Frontend | M1 |
 | 5 | Feature Implementation | Full Stack | M3 + M4 |
 | 6 | Testing & QA | QA + Full Stack | M5 |
+| 7 | OAuth 2.0 Social Platform Setup Wizard | Full Stack | M2 + M4 |
+
+---
+
+## Milestone 7: OAuth 2.0 Social Platform Setup Wizard
+
+Adds a first-login onboarding setup screen where users connect their social media accounts via real OAuth 2.0 flows before accessing the dashboard. Extends backend OAuth clients to support LinkedIn and X/Twitter in addition to existing Meta and TikTok support.
+
+### 7.1 Backend — `auth-service`
+- [ ] Add Flyway migration `V4__add_onboarding_flag.sql` — `ALTER TABLE users ADD COLUMN onboarding_complete BOOLEAN NOT NULL DEFAULT FALSE;`
+- [ ] Update `UserEntity` with `onboardingComplete` field
+- [ ] Include `onboardingComplete` in `AuthResponse` DTO returned on login
+- [ ] Implement `PATCH /auth/users/{userId}/onboarding-complete` internal endpoint (protected by `X-Internal-Secret` header, not exposed via Nginx)
+
+### 7.2 Backend — `core-service` (New OAuth Clients)
+- [ ] Implement `LinkedInOAuthClient.java`
+  - [ ] PKCE authorization URL → `https://www.linkedin.com/oauth/v2/authorization`
+  - [ ] Scopes: `r_liteprofile`, `r_emailaddress`, `w_member_social`, `rw_organization_admin`
+  - [ ] Token exchange: `POST https://www.linkedin.com/oauth/v2/accessToken`
+- [ ] Implement `XOAuthClient.java`
+  - [ ] PKCE authorization URL → `https://twitter.com/i/oauth2/authorize`
+  - [ ] Scopes: `tweet.read`, `tweet.write`, `users.read`, `offline.access`
+  - [ ] Token exchange: `POST https://api.twitter.com/2/oauth2/token`
+- [ ] Wire new clients into `OAuthService.initOAuth()` and `OAuthService.handleCallback()` switch expressions
+- [ ] Add `parsePlatform()` aliases for `"LINKEDIN"` → `SocialPlatform.LINKEDIN` and `"X"` / `"TWITTER"` → `SocialPlatform.X`
+- [ ] After successful callback, call `auth-service` internal REST endpoint to set `onboarding_complete = true`
+- [ ] Implement `GET /core/workspaces/{workspaceId}/onboarding-status` returning `{ platformsConnected, count }`
+
+### 7.3 Frontend — React SPA
+- [ ] Create `src/stores/useOnboardingStore.ts` (Zustand, persisted to `localStorage`)
+- [ ] Update `useAuthStore.setAuth()` to also seed `useOnboardingStore` from login response
+- [ ] Create `src/pages/SocialSetupPage.tsx` (route: `/setup`)
+  - [ ] Welcome header with Serendia branding
+  - [ ] Progress bar ("X of 4 platforms connected")
+  - [ ] Platform cards for Meta, TikTok, LinkedIn, X — each with status badge and Connect button
+  - [ ] "Continue to Dashboard" button (enabled when ≥1 platform connected)
+  - [ ] "Skip for now" link (marks onboarding complete, navigates to `/dashboard`)
+- [ ] Update `ProtectedRoute.tsx` — redirect to `/setup` when `onboardingComplete === false` (exempt `/setup` route itself)
+- [ ] Update `OAuthCallbackPage.tsx` — redirect to `/setup` if `onboardingComplete === false`, else `/settings`
+- [ ] Add `/setup` route to `router/index.tsx`
+- [ ] Add LinkedIn and X connection cards to `SettingsPage.tsx`
+
+### 7.4 Environment Variables
+- [ ] Add `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` to `.env.example`
+- [ ] Add `X_CLIENT_ID`, `X_CLIENT_SECRET` to `.env.example`
+- [ ] Add `INTERNAL_SERVICE_SECRET` to `.env.example` (used by core-service → auth-service internal calls)
+
+### 7.5 Documentation
+- [ ] Create `docs/oauth_setup_guide.md` covering LinkedIn and X developer app registration, env vars, and local testing with ngrok
+- [ ] Update `README.md` to reference the new setup guide
 
 ---
 
