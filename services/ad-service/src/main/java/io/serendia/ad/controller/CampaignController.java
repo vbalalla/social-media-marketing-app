@@ -4,6 +4,7 @@ import io.serendia.ad.domain.*;
 import io.serendia.ad.dto.CreateCampaignRequest;
 import io.serendia.ad.dto.UpdateBudgetRequest;
 import io.serendia.ad.dto.UpdateStatusRequest;
+import io.serendia.ad.service.BudgetReallocationEngine;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class CampaignController {
 
     private final CampaignRepository campaignRepository;
     private final ReallocationEventRepository reallocationEventRepository;
+    private final BudgetReallocationEngine budgetReallocationEngine;
 
     @PostMapping("/workspaces/{workspaceId}/campaigns")
     public ResponseEntity<CampaignEntity> createCampaign(
@@ -113,5 +115,11 @@ public class CampaignController {
     public ResponseEntity<List<ReallocationEventEntity>> getReallocationHistory(@PathVariable UUID id) {
         List<ReallocationEventEntity> history = reallocationEventRepository.findByCampaignIdOrderByExecutedAtDesc(id);
         return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/campaigns/trigger-reallocation")
+    public ResponseEntity<Void> triggerReallocation() {
+        budgetReallocationEngine.executeReallocations();
+        return ResponseEntity.ok().build();
     }
 }
