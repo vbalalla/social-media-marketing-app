@@ -62,6 +62,33 @@ test.describe('Serendia Social Media Marketing App E2E Flow', () => {
 
     // Connect Meta social account (Mock integration)
     console.log('Connecting Meta account (mock redirection)...');
+
+    // Intercept OAuth init and redirect to a local callback URL
+    await page.route('**/api/core/oauth/init*', async route => {
+      const url = new URL(route.request().url());
+      const wsId = url.searchParams.get('workspaceId');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          authorizationUrl: `http://localhost:3000/oauth/callback?code=mock_code&state=FACEBOOK:${wsId}`
+        })
+      });
+    });
+
+    // Intercept OAuth callback check
+    await page.route('**/api/core/oauth/callback*', async route => {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          socialAccountId: '12345678-1234-1234-1234-1234567890ab',
+          displayName: 'Meta Mock Page',
+          platform: 'FACEBOOK'
+        })
+      });
+    });
+
     await page.click('button:has-text("Connect Meta")');
     // The OAuth init URL redirects, wait for it to return to settings with success toast
     await page.waitForURL(/\/settings/);
