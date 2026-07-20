@@ -17,10 +17,12 @@ test.describe('Serendia Social Media Marketing App E2E Flow', () => {
     await page.goto('/register');
     await expect(page).toHaveURL(/\/register/);
 
+    const email = `jane.admin-${Date.now()}@serendia.io`;
+
     // 3. Fill in registration form
     console.log('Filling in register fields...');
     await page.fill('input[placeholder="John Doe"]', 'Jane Admin');
-    await page.fill('input[placeholder="name@example.com"]', 'jane.admin@serendia.io');
+    await page.fill('input[placeholder="name@example.com"]', email);
     await page.fill('input[placeholder="At least 12 characters"]', 'SuperPassword123!');
     
     // Click register button
@@ -34,7 +36,7 @@ test.describe('Serendia Social Media Marketing App E2E Flow', () => {
 
     // 5. Log in
     console.log('Entering login credentials...');
-    await page.fill('input[placeholder="name@example.com"]', 'jane.admin@serendia.io');
+    await page.fill('input[placeholder="name@example.com"]', email);
     await page.fill('input[placeholder="••••••••••••"]', 'SuperPassword123!');
     await page.click('button:has-text("Log In")');
 
