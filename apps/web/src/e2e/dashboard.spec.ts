@@ -75,30 +75,15 @@ test.describe('Serendia Social Media Marketing App E2E Flow', () => {
     // Click New Campaign to launch wizard modal
     console.log('Opening New Campaign Wizard...');
     await page.click('button:has-text("New Campaign")');
-    await page.waitForSelector('h3:has-text("Launch New Campaign")');
+    await page.waitForSelector('h3:has-text("New Campaign Wizard")');
 
-    // Step 1: Select platforms & linked accounts
-    console.log('Wizard Step 1: Selecting platforms...');
-    await page.click('label:has-text("Meta Ads")');
-    await page.click('label:has-text("TikTok Business Ads")');
-    await page.click('button:has-text("Next")');
+    // Fill the campaign details
+    console.log('Filling in campaign details...');
+    await page.fill('input[placeholder="e.g. Q3 Summer Product Launch"]', 'Promo Q3');
+    await page.fill('input[type="number"]', '200');
 
-    // Step 2: Targeting
-    console.log('Wizard Step 2: Next...');
-    await page.click('button:has-text("Next")');
-
-    // Step 3: Creative assets
-    console.log('Wizard Step 3: Next...');
-    await page.click('button:has-text("Next")');
-
-    // Step 4: Budget
-    console.log('Wizard Step 4: Entering budget details...');
-    await page.fill('input[type="number"]', '200'); // set daily cap
-    await page.click('button:has-text("Next")');
-
-    // Step 5: Review & Launch
-    console.log('Wizard Step 5: Review & Launching campaign...');
-    await page.fill('input[placeholder="e.g. Summer Clearance 2026"]', 'Promo Q3');
+    // Launch campaign
+    console.log('Launching campaign...');
     await page.click('button:has-text("Launch Campaign")');
 
     // Verify campaign is created in campaigns table
