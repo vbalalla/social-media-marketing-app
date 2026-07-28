@@ -20,8 +20,18 @@ export const SocialSetupPage: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const { currentWorkspace: workspace } = useWorkspaces();
+  const { currentWorkspace: workspace, workspaces, createWorkspace, isLoadingWorkspaces } = useWorkspaces();
   const workspaceId = workspace?.id;
+  const user = useAuthStore((state) => state.user);
+
+  // Auto-initialize a workspace if none exists yet
+  React.useEffect(() => {
+    if (!isLoadingWorkspaces && workspaces.length === 0 && user) {
+      createWorkspace(`${user.fullName}'s Workspace`).catch(() => {
+        // Fallback silently
+      });
+    }
+  }, [workspaces, isLoadingWorkspaces, user, createWorkspace]);
 
   // Fetch connected social accounts to see what is already set up
   const { data: accounts = [] } = useQuery({
