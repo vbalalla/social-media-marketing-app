@@ -44,7 +44,7 @@ public class MetaOAuthClient {
      * @param codeChallenge PKCE S256 code challenge
      */
     public String buildAuthorizationUrl(String state, String codeChallenge) {
-        return UriComponentsBuilder.fromHttpUrl(GRAPH_BASE + "/dialog/oauth")
+        return UriComponentsBuilder.fromHttpUrl("https://www.facebook.com/dialog/oauth")
                 .queryParam("client_id",             appId)
                 .queryParam("redirect_uri",           redirectUri)
                 .queryParam("scope",                  "pages_manage_posts,pages_read_engagement,ads_management,instagram_basic,instagram_manage_messages")
