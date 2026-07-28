@@ -47,7 +47,7 @@ public class MetaOAuthClient {
         return UriComponentsBuilder.fromHttpUrl("https://www.facebook.com/dialog/oauth")
                 .queryParam("client_id",             appId)
                 .queryParam("redirect_uri",           redirectUri)
-                .queryParam("scope",                  "pages_manage_posts,pages_read_engagement,ads_management,instagram_business_basic,instagram_business_manage_messages")
+                .queryParam("scope",                  "pages_manage_posts,pages_read_engagement,ads_management,instagram_basic,instagram_manage_messages")
                 .queryParam("response_type",          "code")
                 .queryParam("state",                  state)
                 .queryParam("code_challenge",         codeChallenge)
